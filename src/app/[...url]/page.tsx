@@ -1,6 +1,7 @@
 import ChatWrapper from '@/components/chat-wrapper'
 import { ragChat } from '@/libs/rag-chat'
 import { redis } from '@/libs/redis'
+import { cookies } from 'next/headers'
 import React from 'react'
 
 interface PageProps {
@@ -15,11 +16,15 @@ function reconstructUrl({url}: {url: string[]}) {
 }
 
 const Page = async ({params}: PageProps) => {
+    const sessionCookie = (await cookies()).get("sessionId")?.value
     const reconstructedUrl = reconstructUrl({url: params.url as string[]})
+
+    const sessionId = (reconstructUrl + "-" + sessionCookie).replace(/\//g, "")
 
     const isAlreadyIndexed = await redis.sismember("indexed-urls", reconstructedUrl)
 
-    console.log("is already indexed: ", isAlreadyIndexed)
+    const initialMessages = await ragChat.history.getMessages({ amount: 10, sessionId })
+
 
    if(!isAlreadyIndexed){
     await ragChat.context.add({
@@ -33,7 +38,7 @@ const Page = async ({params}: PageProps) => {
 
   return (
     <div>
-        <ChatWrapper sessionId='mock-session' />
+        <ChatWrapper sessionId={sessionId} initialMessages={initialMessages} />
     </div>
   )
 }
