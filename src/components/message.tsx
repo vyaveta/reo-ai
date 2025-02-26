@@ -1,5 +1,5 @@
 import { cn } from '@/libs/utils'
-import { Bot, User } from 'lucide-react'
+import { User } from 'lucide-react'
 import Image from 'next/image'
 import React from 'react'
 
